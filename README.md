@@ -58,7 +58,7 @@ REST
 - [rest-api](https://cloud.yandex.ru/ru/docs/glossary/rest-api)
 
 Старый способ сделать HTTP server
-- [rest_api_series/stdlib](https://www.jehttps://go.dev/doc/articles/wiki/tbrains.com/guide/go/tutorials/rest_api_series/stdlib/)
+- [rest_api_series](https://www.jetbrains.com/guide/go/tutorials/rest_api_series/stdlib/)
 
 1.22 HTTP в Go 1.22+
 - [spin-a-framework-free-http-router-server-in-go-122-with-ease-6nc](https://dev.to/prakash_chokalingam/spin-a-framework-free-http-router-server-in-go-122-with-ease-6nc)
