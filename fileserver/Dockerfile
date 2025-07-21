@@ -1,4 +1,4 @@
-FROM golang:1.23 AS build
+FROM golang:1.24 AS build
 
 COPY . /src
 RUN cd /src && CGO_ENABLED=0 go build -o /fileserver /src/server.go
