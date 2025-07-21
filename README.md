@@ -1,5 +1,7 @@
-# Hello web server!
+# Hello web server
+
 ## Цель
+
 Создать два простых микросервиса, обслуживающих клиентов по REST протоколу, - hello и fileserver.
 
 У hello сервиса должно быть 2 эндпоинта:
@@ -37,30 +39,37 @@ curl -v -X DELETE localhost:28081/files/file1.txt
 3. Серверы конфигурируются через cleanenv пакет и должны уметь запускаться как с config.yaml
 файлом через флаг -config, так и через переменные среды,
 в этом задании - HELLO_PORT и FILESERVER_PORT.
-4. Используется golang 1.23+
+4. Используется golang 1.24+
 
 ## Материалы для ознакомления
 
 Git
+
 - [git-for-half-an-hour](https://proglib.io/p/git-for-half-an-hour)
 - [git-github-review](https://selectel.ru/blog/git-github-review/)
 
 Make
+
 - [makefiles-for-go-developers](https://tutorialedge.net/golang/makefiles-for-go-developers/)
 
 Compose
+
 - [gettingstarted](https://docs.docker.com/compose/gettingstarted/)
 
 Project layout
+
 - [flat-application-structure](https://www.calhoun.io/flat-application-structure/)
 
 REST
+
 - [rest-api](https://cloud.yandex.ru/ru/docs/glossary/rest-api)
 
 Старый способ сделать HTTP server
+
 - [rest_api_series](https://www.jetbrains.com/guide/go/tutorials/rest_api_series/stdlib/)
 
 1.22 HTTP в Go 1.22+
+
 - [spin-a-framework-free-http-router-server-in-go-122-with-ease-6nc](https://dev.to/prakash_chokalingam/spin-a-framework-free-http-router-server-in-go-122-with-ease-6nc)
 - [routing-enhancements](https://go.dev/blog/routing-enhancements)
 - [Улучшенная маршрутизация HTTP-серверов в Go 1.22](https://habr.com/ru/articles/768034/)
