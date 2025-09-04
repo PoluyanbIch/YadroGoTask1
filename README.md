@@ -39,7 +39,7 @@ curl -v -X DELETE localhost:28081/files/file1.txt
 3. Серверы конфигурируются через cleanenv пакет и должны уметь запускаться как с config.yaml
 файлом через флаг -config, так и через переменные среды,
 в этом задании - HELLO_PORT и FILESERVER_PORT.
-4. Используется golang 1.24+
+4. Используется golang 1.25+
 
 ## Материалы для ознакомления
 
