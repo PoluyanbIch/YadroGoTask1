@@ -70,7 +70,11 @@ func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("FormFile Error: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("Error closing file: %s", err.Error())
+		}
+	}()
 
 	err = os.MkdirAll(dir, 0755)
 	if err != nil {
@@ -93,7 +97,11 @@ func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Creation Error: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
-	defer newFile.Close()
+	defer func() {
+		if err := newFile.Close(); err != nil {
+			log.Printf("Error closing file: %s", err.Error())
+		}
+	}()
 
 	_, err = io.Copy(newFile, file)
 	if err != nil {
@@ -114,7 +122,9 @@ func filesHandlerGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, file := range files {
-		w.Write([]byte(file.Name() + "\n"))
+		if _, err := w.Write([]byte(file.Name() + "\n")); err != nil {
+			log.Printf("Write Error: %s", err.Error())
+		}
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -154,7 +164,11 @@ func filenameHandlerPut(w http.ResponseWriter, r *http.Request, filename string)
 		http.Error(w, fmt.Sprintf("Open file Error: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
-	defer prevFile.Close()
+	defer func() {
+		if err := prevFile.Close(); err != nil {
+			log.Printf("Error closing file: %s", err.Error())
+		}
+	}()
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		http.Error(w, fmt.Sprintf("ParseMultipleForm Error: %s", err.Error()), http.StatusBadRequest)
@@ -166,7 +180,11 @@ func filenameHandlerPut(w http.ResponseWriter, r *http.Request, filename string)
 		http.Error(w, fmt.Sprintf("FormFile Error: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("Error closing file: %s", err.Error())
+		}
+	}()
 
 	if _, err := io.Copy(prevFile, file); err != nil {
 		http.Error(w, fmt.Sprintf("Copying Error: %s", err.Error()), http.StatusInternalServerError)
