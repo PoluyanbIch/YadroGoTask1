@@ -1,16 +1,42 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"net/http"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
+type Config struct {
+	Port int `yaml:"port" env:"HELLO_PORT" env-default:"8080"`
+}
+
+var cfg Config
+
+func loadConfig() error {
+	configPath := flag.String("config", "", "path to config file")
+	flag.Parse()
+
+	if *configPath != "" {
+		return cleanenv.ReadConfig(*configPath, &cfg)
+	}
+	return cleanenv.ReadEnv(&cfg)
+}
+
 func main() {
+	if err := loadConfig(); err != nil {
+		log.Fatalf("Error loading config: %v", err)
+	}
+
+	addr := fmt.Sprintf(":%d", cfg.Port)
+
 	http.HandleFunc("/ping", pingHandler)
 	http.HandleFunc("/hello", helloHandler)
 
-	fmt.Println("Server is listening on port 8080...")
-	http.ListenAndServe(":8080", nil)
+	fmt.Printf("Server is listening on port %d...\n", addr)
+	http.ListenAndServe(addr, nil)
 }
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
