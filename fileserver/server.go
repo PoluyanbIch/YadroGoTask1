@@ -100,9 +100,9 @@ func filenameHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		filenameHandlerPut(w, r, filename)
 	case http.MethodGet:
-		return
+		filenameHandlerGet(w, r, filename)
 	case http.MethodDelete:
-		return
+		filenameHandlerDelete(w, r, filename)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -138,6 +138,43 @@ func filenameHandlerPut(w http.ResponseWriter, r *http.Request, filename string)
 
 	if _, err := io.Copy(prevFile, file); err != nil {
 		http.Error(w, fmt.Sprintf("Copying Error: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func filenameHandlerGet(w http.ResponseWriter, r *http.Request, filename string) {
+	filePath := filepath.Join(dir, filename)
+
+	if _, err := os.Stat(filePath); err != nil {
+		http.Error(w, fmt.Sprintf("File not found Error: %s", err.Error()), http.StatusNotFound)
+		return
+	}
+
+	fileContent, err := os.ReadFile(filePath)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Read file Error: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+	w.Write(fileContent)
+	w.WriteHeader(http.StatusOK)
+}
+
+func filenameHandlerDelete(w http.ResponseWriter, r *http.Request, filename string) {
+	filePath := filepath.Join(dir, filename)
+
+	if _, err := os.Stat(filePath); err != nil {
+		if os.IsNotExist(err) {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		http.Error(w, fmt.Sprintf("File stat Error: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	if err := os.Remove(filePath); err != nil {
+		http.Error(w, fmt.Sprintf("Delete Error: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 
