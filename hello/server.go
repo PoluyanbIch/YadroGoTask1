@@ -35,8 +35,10 @@ func main() {
 	http.HandleFunc("/ping", pingHandler)
 	http.HandleFunc("/hello", helloHandler)
 
-	fmt.Printf("Server is listening on port %d...\n", addr)
-	http.ListenAndServe(addr, nil)
+	fmt.Printf("Server is listening on port %s...\n", addr)
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		log.Fatalf("Server failed to start: %s", err.Error())
+	}
 }
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +47,9 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("pong"))
+	if _, err := w.Write([]byte("pong")); err != nil {
+		log.Printf("Write Error: %s", err.Error())
+	}
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -55,5 +59,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	name := r.URL.Query().Get("name")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
+	if _, err := fmt.Fprintf(w, "Hello, %s!", name); err != nil {
+		log.Printf("Write Error: %s", err.Error())
+	}
 }

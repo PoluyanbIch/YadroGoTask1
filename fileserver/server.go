@@ -41,8 +41,10 @@ func main() {
 	http.HandleFunc("/files", filesHandler)
 	http.HandleFunc("/files/", filenameHandler)
 
-	fmt.Printf("Server is listening on port %d...\n", addr)
-	http.ListenAndServe(addr, nil)
+	fmt.Printf("Server is listening on port %s...\n", addr)
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		log.Fatalf("Server failed to start: %s", err.Error())
+	}
 }
 
 func filesHandler(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +82,9 @@ func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := os.Stat(filePath); err == nil {
 		w.WriteHeader(http.StatusConflict)
-		w.Write([]byte("File already exist"))
+		if _, err := w.Write([]byte("File already exist")); err != nil {
+			log.Printf("Write Error: %s", err.Error())
+		}
 		return
 	}
 
@@ -98,7 +102,9 @@ func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("File upploading success"))
+	if _, err := w.Write([]byte("File upploading success")); err != nil {
+		log.Printf("Write Error: %s", err.Error())
+	}
 }
 
 func filesHandlerGet(w http.ResponseWriter, r *http.Request) {
@@ -183,8 +189,10 @@ func filenameHandlerGet(w http.ResponseWriter, r *http.Request, filename string)
 		http.Error(w, fmt.Sprintf("Read file Error: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
-	w.Write(fileContent)
 	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(fileContent); err != nil {
+		log.Printf("Write Error: %s", err.Error())
+	}
 }
 
 func filenameHandlerDelete(w http.ResponseWriter, r *http.Request, filename string) {
