@@ -110,7 +110,7 @@ func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	if _, err := w.Write([]byte("File upploading success")); err != nil {
+	if _, err := w.Write([]byte(header.Filename)); err != nil {
 		log.Printf("Write Error: %s", err.Error())
 	}
 }

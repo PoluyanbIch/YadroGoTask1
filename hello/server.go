@@ -47,7 +47,7 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write([]byte("pong")); err != nil {
+	if _, err := w.Write([]byte("pong\n")); err != nil {
 		log.Printf("Write Error: %s", err.Error())
 	}
 }
@@ -57,9 +57,22 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	name := r.URL.Query().Get("name")
+
+	query := r.URL.Query()
+	name := query.Get("name")
+
+	if !query.Has("name") {
+		http.Error(w, "empty name", http.StatusBadRequest)
+		return
+	}
+
+	if name == "" {
+		http.Error(w, "Name cannot be empty", http.StatusBadRequest)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	if _, err := fmt.Fprintf(w, "Hello, %s!", name); err != nil {
+	if _, err := fmt.Fprintf(w, "Hello, %s!\n", name); err != nil {
 		log.Printf("Write Error: %s", err.Error())
 	}
 }
