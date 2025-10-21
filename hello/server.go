@@ -32,47 +32,33 @@ func main() {
 
 	addr := fmt.Sprintf(":%d", cfg.Port)
 
-	http.HandleFunc("/ping", pingHandler)
-	http.HandleFunc("/hello", helloHandler)
+	http.HandleFunc("GET /ping", pingHandler)
+	http.HandleFunc("GET /hello", helloHandler)
 
 	fmt.Printf("Server is listening on port %s...\n", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatalf("Server failed to start: %s", err.Error())
+		log.Fatalf("Server failed to start: %v", err)
 	}
 }
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write([]byte("pong\n")); err != nil {
-		log.Printf("Write Error: %s", err.Error())
+		log.Printf("Write Error: %v", err)
 	}
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	query := r.URL.Query()
 	name := query.Get("name")
 
-	if !query.Has("name") {
-		http.Error(w, "empty name", http.StatusBadRequest)
-		return
-	}
-
 	if name == "" {
-		http.Error(w, "Name cannot be empty", http.StatusBadRequest)
+		http.Error(w, "empty name", http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	if _, err := fmt.Fprintf(w, "Hello, %s!\n", name); err != nil {
-		log.Printf("Write Error: %s", err.Error())
+		log.Printf("Write Error: %v", err)
 	}
 }
