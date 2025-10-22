@@ -13,7 +13,8 @@ import (
 )
 
 type Config struct {
-	Port int `yaml:"port" env:"HELLO_PORT" env-default:"8080"`
+	Port int    `yaml:"port" env:"HELLO_PORT" env-default:"8080"`
+	Dir  string `yaml:"dir" env:"DIR" env-default:"./upload"`
 }
 
 var cfg Config
@@ -27,8 +28,6 @@ func loadConfig() error {
 	}
 	return cleanenv.ReadEnv(&cfg)
 }
-
-const dir = "./upload"
 
 func main() {
 	if err := loadConfig(); err != nil {
@@ -66,13 +65,13 @@ func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	err = os.MkdirAll(dir, 0755)
+	err = os.MkdirAll(cfg.Dir, 0755)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error in making dir: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	filePath := filepath.Join(dir, header.Filename)
+	filePath := filepath.Join(cfg.Dir, header.Filename)
 
 	if _, err := os.Stat(filePath); err == nil {
 		w.WriteHeader(http.StatusConflict)
@@ -106,7 +105,7 @@ func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func filesHandlerGet(w http.ResponseWriter, r *http.Request) {
-	files, err := os.ReadDir(dir)
+	files, err := os.ReadDir(cfg.Dir)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Reading Directory Error: %v", err), http.StatusInternalServerError)
 		return
@@ -126,7 +125,7 @@ func filenameHandlerPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := filepath.Join(dir, filename)
+	filePath := filepath.Join(cfg.Dir, filename)
 
 	if _, err := os.Stat(filePath); err != nil {
 		http.Error(w, fmt.Sprintf("File not found Error: %v", err), http.StatusNotFound)
@@ -175,7 +174,7 @@ func filenameHandlerGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := filepath.Join(dir, filename)
+	filePath := filepath.Join(cfg.Dir, filename)
 
 	if _, err := os.Stat(filePath); err != nil {
 		http.Error(w, fmt.Sprintf("File not found Error: %v", err), http.StatusNotFound)
@@ -203,7 +202,7 @@ func filenameHandlerDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := filepath.Join(dir, filename)
+	filePath := filepath.Join(cfg.Dir, filename)
 
 	if _, err := os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
