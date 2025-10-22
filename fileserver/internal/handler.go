@@ -1,54 +1,23 @@
-package main
+package internal
 
 import (
-	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-
-	"github.com/ilyakaznacheev/cleanenv"
 )
 
-type Config struct {
-	Port int    `yaml:"port" env:"HELLO_PORT" env-default:"8080"`
-	Dir  string `yaml:"dir" env:"DIR" env-default:"./upload"`
+type FileHandler struct {
+	dir string
 }
 
-var cfg Config
-
-func loadConfig() error {
-	configPath := flag.String("config", "", "path to config file")
-	flag.Parse()
-
-	if *configPath != "" {
-		return cleanenv.ReadConfig(*configPath, &cfg)
-	}
-	return cleanenv.ReadEnv(&cfg)
+func NewFileHandler(dir string) *FileHandler {
+	return &FileHandler{dir: dir}
 }
 
-func main() {
-	if err := loadConfig(); err != nil {
-		log.Fatalf("Error loading config: %v", err)
-	}
-
-	addr := fmt.Sprintf(":%d", cfg.Port)
-
-	http.HandleFunc("POST /files", filesHandlerPost)
-	http.HandleFunc("GET /files", filesHandlerGet)
-	http.HandleFunc("PUT /files/{filename}", filenameHandlerPut)
-	http.HandleFunc("GET /files/{filename}", filenameHandlerGet)
-	http.HandleFunc("DELETE /files/{filename}", filenameHandlerDelete)
-
-	fmt.Printf("Server is listening on port %s...\n", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
-	}
-}
-
-func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
+func (h *FileHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		http.Error(w, fmt.Sprintf("ParseMultipleForm Error: %v", err), http.StatusBadRequest)
 		return
@@ -65,13 +34,13 @@ func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	err = os.MkdirAll(cfg.Dir, 0755)
+	err = os.MkdirAll(h.dir, 0755)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error in making dir: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	filePath := filepath.Join(cfg.Dir, header.Filename)
+	filePath := filepath.Join(h.dir, header.Filename)
 
 	if _, err := os.Stat(filePath); err == nil {
 		w.WriteHeader(http.StatusConflict)
@@ -104,8 +73,8 @@ func filesHandlerPost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func filesHandlerGet(w http.ResponseWriter, r *http.Request) {
-	files, err := os.ReadDir(cfg.Dir)
+func (h *FileHandler) List(w http.ResponseWriter, r *http.Request) {
+	files, err := os.ReadDir(h.dir)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Reading Directory Error: %v", err), http.StatusInternalServerError)
 		return
@@ -118,14 +87,14 @@ func filesHandlerGet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func filenameHandlerPut(w http.ResponseWriter, r *http.Request) {
+func (h *FileHandler) Download(w http.ResponseWriter, r *http.Request) {
 	filename := r.PathValue("filename")
 	if filename == "" {
 		http.Error(w, "Filename required", http.StatusBadRequest)
 		return
 	}
 
-	filePath := filepath.Join(cfg.Dir, filename)
+	filePath := filepath.Join(h.dir, filename)
 
 	if _, err := os.Stat(filePath); err != nil {
 		http.Error(w, fmt.Sprintf("File not found Error: %v", err), http.StatusNotFound)
@@ -167,14 +136,14 @@ func filenameHandlerPut(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func filenameHandlerGet(w http.ResponseWriter, r *http.Request) {
+func (h *FileHandler) Update(w http.ResponseWriter, r *http.Request) {
 	filename := r.PathValue("filename")
 	if filename == "" {
 		http.Error(w, "Filename required", http.StatusBadRequest)
 		return
 	}
 
-	filePath := filepath.Join(cfg.Dir, filename)
+	filePath := filepath.Join(h.dir, filename)
 
 	if _, err := os.Stat(filePath); err != nil {
 		http.Error(w, fmt.Sprintf("File not found Error: %v", err), http.StatusNotFound)
@@ -195,14 +164,14 @@ func filenameHandlerGet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func filenameHandlerDelete(w http.ResponseWriter, r *http.Request) {
+func (h *FileHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	filename := r.PathValue("filename")
 	if filename == "" {
 		http.Error(w, "Filename required", http.StatusBadRequest)
 		return
 	}
 
-	filePath := filepath.Join(cfg.Dir, filename)
+	filePath := filepath.Join(h.dir, filename)
 
 	if _, err := os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
